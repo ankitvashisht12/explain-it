@@ -34,7 +34,7 @@ With the [skills CLI](https://github.com/vercel-labs/skills) (installs into
 Claude Code, Codex, Cursor, and ~70 other agents):
 
 ```bash
-npx skills add <owner>/<repo> --skill explain-it
+npx skills add ankitvashisht12/explain-it --skill explain-it
 ```
 
 Or manually: copy this folder into your agent's skills directory
