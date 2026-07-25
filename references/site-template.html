@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!-- TEMPLATE: copy this file per page. Replace <title>, the sidebar's "on"
+     item, and the content inside <main>. Keep tokens + components intact. -->
+<title>PAGE TITLE · SITE NAME</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+:root{
+  color-scheme:light;
+  --primary:#c2603d;
+  --accent-50:#f8f3ef; --accent-100:#f3e8e1; --accent-200:#e9d6ca; --accent-700:#9c4a2c;
+  --bg:#faf9f5; --surface:#ffffff; --border:#e6e2d8; --border-subtle:#f0ece2;
+  --text:#1f1e1c; --text-2:#46443f; --text-3:#75726a;
+  --green-50:#eaf4ec; --green-700:#2f6b45; --red-50:#fbeeea; --red-700:#a8412a;
+  --amber-50:#fbf1de; --amber-700:#8a6220;
+  --sans:"Plus Jakarta Sans",-apple-system,BlinkMacSystemFont,sans-serif;
+  --serif:"Instrument Serif",Georgia,"Times New Roman",serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  --warn-border:#e8d4a8; --good-border:#c3ddcb;
+}
+/* dark values: applied on [data-theme="dark"], or by OS preference unless the
+   reader has explicitly chosen light. The toggle sets data-theme on <html>. */
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --primary:#d97757;
+  --accent-50:#282320; --accent-100:#3a2a23; --accent-200:#4d372c; --accent-700:#e79c7d;
+  --bg:#1f1e1d; --surface:#262624; --border:#3a3936; --border-subtle:#2f2e2c;
+  --text:#f5f4ef; --text-2:#c9c6bd; --text-3:#94908a;
+  --green-50:#1b2a20; --green-700:#7fc79b; --red-50:#2e1d18; --red-700:#eb9880;
+  --amber-50:#2b2314; --amber-700:#e0bc78;
+  --warn-border:#4a3a1c; --good-border:#2a4d37;
+}
+@media(prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --primary:#d97757;
+    --accent-50:#282320; --accent-100:#3a2a23; --accent-200:#4d372c; --accent-700:#e79c7d;
+    --bg:#1f1e1d; --surface:#262624; --border:#3a3936; --border-subtle:#2f2e2c;
+    --text:#f5f4ef; --text-2:#c9c6bd; --text-3:#94908a;
+    --green-50:#1b2a20; --green-700:#7fc79b; --red-50:#2e1d18; --red-700:#eb9880;
+    --amber-50:#2b2314; --amber-700:#e0bc78;
+    --warn-border:#4a3a1c; --good-border:#2a4d37;
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+a{color:var(--accent-700)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:4px}
+.shell{display:grid;grid-template-columns:230px minmax(0,1fr)}
+/* ---- sidebar (repeat on every page; mark current with class="on") ---- */
+.side{position:sticky;top:0;height:100vh;overflow-y:auto;border-right:1px solid var(--border);padding:28px 18px;background:var(--surface)}
+.side .brand{font-family:var(--serif);font-size:17px;font-weight:400;letter-spacing:-.01em}
+/* collapse toggle: CSS-only, no JS — the checkbox lives just before .shell */
+.navcb{position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none}
+.sidetop{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:18px}
+.navbtn{flex:none;cursor:pointer;user-select:none;font-family:var(--sans);font-size:13px;min-width:29px;text-align:center;line-height:1;color:var(--text-3);background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:6px 8px}
+.navbtn:hover{color:var(--text);border-color:var(--accent-200)}
+.sidebtns{display:flex;gap:6px;flex:none}
+.themebtn::after{content:"\263E"}                     /* moon: click for dark */
+:root[data-theme="dark"] .themebtn::after{content:"\2600"}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .themebtn::after{content:"\2600"}}
+.navcb:focus-visible + .shell .navbtn{outline:2px solid var(--primary);outline-offset:2px}
+.navcb:checked + .shell{grid-template-columns:56px minmax(0,1fr)}
+.navcb:checked + .shell .side{padding:28px 10px}
+.navcb:checked + .shell .side .brand,.navcb:checked + .shell .side nav{display:none}
+.navcb:checked + .shell .sidetop{flex-direction:column;justify-content:center;gap:8px;margin-bottom:0}
+.navcb:checked + .shell .sidebtns{flex-direction:column}
+.side .brand span{color:var(--primary)}
+.side nav{display:flex;flex-direction:column;gap:2px}
+.side a{display:block;font-size:12.5px;font-weight:500;color:var(--text-3);text-decoration:none;padding:7px 10px;border-radius:8px;line-height:1.45}
+.side a:hover{color:var(--text);background:var(--accent-50)}
+.side a.on{color:var(--accent-700);background:var(--accent-100)}
+.side a .n{font-family:var(--mono);font-size:10px;color:var(--text-3);margin-right:6px}
+/* ---- content ---- */
+.wrap{max-width:880px;margin:0 auto;padding:48px 28px 120px;min-width:0}
+h1{font-family:var(--serif);font-weight:400;font-size:40px;letter-spacing:-.01em;line-height:1.15}
+.sub{font-family:var(--serif);font-size:19px;line-height:1.5;color:var(--text-3);margin-top:12px;max-width:60ch}
+h2{font-family:var(--serif);font-weight:400;font-size:28px;letter-spacing:-.005em;line-height:1.25;margin:64px 0 4px;scroll-margin-top:20px}
+h3{font-family:var(--serif);font-weight:400;font-size:20px;margin:28px 0 8px}
+p{margin:12px 0;color:var(--text-2);max-width:72ch}
+p b,li b{color:var(--text)}
+ul,ol{margin:12px 0 12px 22px;color:var(--text-2)}
+li{margin:7px 0;max-width:70ch}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--primary);font-weight:600;margin-top:60px}
+.eyebrow + h2{margin-top:4px}
+code{font-family:var(--mono);font-size:12.5px;background:var(--accent-100);color:var(--accent-700);padding:2px 6px;border-radius:5px}
+/* ---- chip TOC ---- */
+.toc{display:flex;gap:8px;flex-wrap:wrap;margin-top:26px}
+.toc a{font-size:12.5px;font-weight:500;color:var(--accent-700);background:var(--accent-100);border-radius:99px;padding:6px 14px;text-decoration:none}
+.toc a:hover{background:var(--accent-200)}
+/* ---- story block ---- */
+.story{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px 26px;margin:22px 0}
+.story .cast{display:flex;flex-direction:column;gap:12px}
+.story .beat{display:flex;gap:14px;align-items:flex-start}
+.story .who{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--accent-700);background:var(--accent-100);border-radius:99px;padding:4px 10px;white-space:nowrap;margin-top:2px}
+.story .what{font-size:14px;color:var(--text-2)}
+/* ---- callouts ---- */
+.callout{display:flex;gap:12px;border-radius:12px;padding:16px 18px;margin:20px 0;font-size:14px;border:1px solid}
+.callout .ic{font-size:16px;line-height:1.5}
+.callout.why{background:var(--accent-50);border-color:var(--accent-200);color:var(--text-2)}
+.callout.warn{background:var(--amber-50);border-color:var(--warn-border);color:var(--text-2)}
+.callout.good{background:var(--green-50);border-color:var(--good-border);color:var(--text-2)}
+.callout b{color:var(--text)}
+/* ---- diff block ---- */
+.diff{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:20px 0;font-family:var(--mono);font-size:12.5px;line-height:1.75}
+.diff .dh{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border-subtle);font-family:var(--sans);font-size:12.5px;font-weight:600}
+.diff .dh .f{font-family:var(--mono);font-weight:400;font-size:11px;color:var(--text-3)}
+.diff pre{overflow-x:auto;padding:14px 0;white-space:pre}
+.diff .ln{display:block;padding:0 18px}
+.diff .del{background:var(--red-50);color:var(--red-700)}
+.diff .add{background:var(--green-50);color:var(--green-700)}
+.diff .ctx{color:var(--text-3)}
+.diff .cm{color:#8d897e}
+/* ---- scoreboard ---- */
+.tblwrap{overflow-x:auto}
+.status{width:100%;border-collapse:collapse;margin:20px 0;font-size:13.5px;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.status th{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;text-align:left;color:var(--text-3);padding:12px 16px;border-bottom:1px solid var(--border)}
+.status td{padding:12px 16px;border-bottom:1px solid var(--border-subtle);color:var(--text-2);vertical-align:top}
+.status tr:last-child td{border-bottom:none}
+.pill{font-family:var(--mono);font-size:10.5px;font-weight:600;border-radius:99px;padding:3px 10px;white-space:nowrap}
+.pill.done{background:var(--green-50);color:var(--green-700)}
+.pill.idea{background:var(--amber-50);color:var(--amber-700)}
+/* ---- responsive: sidebar becomes a top strip ---- */
+@media(max-width:800px){
+  .shell,.navcb:checked + .shell{grid-template-columns:1fr}
+  .navcb:checked + .shell .side{padding:14px 16px}
+  .side{position:static;height:auto;border-right:none;border-bottom:1px solid var(--border);padding:14px 16px}
+  .side nav{flex-direction:row;overflow-x:auto;gap:6px;padding-bottom:4px}
+  .side a{white-space:nowrap}
+  .story .beat{flex-direction:column;gap:4px}
+}
+</style>
+<script>
+/* theme toggle — the only JS in the page: remembers the reader's choice and
+   otherwise follows the OS. Runs in <head> so there is no flash of light. */
+(function(){
+  var r=document.documentElement,K="explainer-theme",s=null;
+  try{s=localStorage.getItem(K)}catch(e){}
+  if(s)r.setAttribute("data-theme",s);
+  document.addEventListener("click",function(e){
+    if(!e.target.closest(".themebtn"))return;
+    var cur=r.getAttribute("data-theme")||(matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light"),
+        next=cur==="dark"?"light":"dark";
+    r.setAttribute("data-theme",next);
+    try{localStorage.setItem(K,next)}catch(e){}
+  });
+})();
+</script>
+</head>
+<body>
+<input type="checkbox" id="nav" class="navcb" aria-label="Collapse sidebar" />
+<div class="shell">
+
+<aside class="side">
+  <div class="sidetop">
+    <div class="brand">SITE <span>NAME</span></div>
+    <div class="sidebtns">
+      <button type="button" class="navbtn themebtn" title="Switch light / dark" aria-label="Switch light or dark theme"></button>
+      <label for="nav" class="navbtn" title="Show/hide navigation">&#9776;</label>
+    </div>
+  </div>
+  <nav>
+    <!-- one entry per page, reading order; mark the current page class="on" -->
+    <a href="index.html" class="on">The 2-minute primer</a>
+    <a href="01-first-topic.html"><span class="n">01</span>First topic title</a>
+    <a href="02-second-topic.html"><span class="n">02</span>Second topic title</a>
+  </nav>
+</aside>
+
+<main class="wrap">
+
+<h1>Page title that states the point,<br/>not just the topic</h1>
+<p class="sub">One-paragraph promise: what this page explains and for whom. Written for a reader with zero context on this codebase.</p>
+
+<!-- chip TOC: in-page anchors only (root page: links to the other pages) -->
+<div class="toc">
+  <a href="#when">When does this run?</a>
+  <a href="#wrong">What's wrong</a>
+  <a href="#fix">The fix</a>
+</div>
+
+<div class="eyebrow" id="when">Topic category · one or two words</div>
+<h2>When does this code even run?</h2>
+<div class="story"><div class="cast">
+  <div class="beat"><span class="who">User</span><span class="what">does the concrete thing that triggers this code — with a real example value.</span></div>
+  <div class="beat"><span class="who">Engine</span><span class="what">runs a function called <code>realFunctionName</code> — say how hot/frequent this path is.</span></div>
+  <div class="beat"><span class="who">One tiny job inside it</span><span class="what">zoom into the specific decision this page is about.</span></div>
+</div></div>
+
+<div class="eyebrow" id="wrong">Problem</div>
+<h2>What's wrong</h2>
+<p>Prose that carries <b>why it matters</b>, using the primer's metaphors verbatim and real identifiers in <code>code font</code>.</p>
+<div class="callout warn"><span class="ic">⚠</span><div><b>Cost, concretely:</b> quantify — sizes, frequencies, counts. Never "slow" or "big".</div></div>
+
+<div class="eyebrow" id="fix">Fix</div>
+<h2>The fix</h2>
+<div class="diff">
+  <div class="dh">Plain-language title of the change <span class="f">path/to/file.ts (~line 123)</span></div>
+  <pre><span class="ln ctx">  function context() {</span><span class="ln del">-   const old = wayOfDoingIt()   <span class="cm">// why this was a problem</span></span><span class="ln add">+   const gated = cheapCheck()   <span class="cm">// why the new way is safe/cheap</span></span><span class="ln add">+   const value = gated ? expensive() : null</span><span class="ln ctx">    return use(value)</span><span class="ln ctx">  }</span></pre>
+</div>
+<div class="callout good"><span class="ic">✓</span><div><b>Why it's safe:</b> the one-paragraph behavior-preservation argument.</div></div>
+<div class="callout why"><span class="ic">🤔</span><div><b>Decision, not a bug:</b> use this framing when something is a defensible trade-off — say who should decide.</div></div>
+
+<!-- root page only: scoreboard at the end -->
+<div class="eyebrow" id="status">Scoreboard</div>
+<h2>What's applied vs. what's still an idea</h2>
+<div class="tblwrap"><table class="status">
+  <tr><th>Item</th><th>Status</th><th>Where</th></tr>
+  <tr><td>Example completed item</td><td><span class="pill done">merged</span></td><td><code>path/to/file.ts</code></td></tr>
+  <tr><td>Example proposed item</td><td><span class="pill idea">proposed</span></td><td><code>path/to/other.ts</code></td></tr>
+</table></div>
+
+</main>
+</div>
+</body>
+</html>

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Loading the whole photocopy per request · explain-it</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+:root{
+  color-scheme:light;
+  --primary:#c2603d;
+  --accent-50:#f8f3ef; --accent-100:#f3e8e1; --accent-200:#e9d6ca; --accent-700:#9c4a2c;
+  --bg:#faf9f5; --surface:#ffffff; --border:#e6e2d8; --border-subtle:#f0ece2;
+  --text:#1f1e1c; --text-2:#46443f; --text-3:#75726a;
+  --green-50:#eaf4ec; --green-700:#2f6b45; --red-50:#fbeeea; --red-700:#a8412a;
+  --amber-50:#fbf1de; --amber-700:#8a6220;
+  --sans:"Plus Jakarta Sans",-apple-system,BlinkMacSystemFont,sans-serif;
+  --serif:"Instrument Serif",Georgia,"Times New Roman",serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  --warn-border:#e8d4a8; --good-border:#c3ddcb;
+}
+/* dark values: applied on [data-theme="dark"], or by OS preference unless the
+   reader has explicitly chosen light. The toggle sets data-theme on <html>. */
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --primary:#d97757;
+  --accent-50:#282320; --accent-100:#3a2a23; --accent-200:#4d372c; --accent-700:#e79c7d;
+  --bg:#1f1e1d; --surface:#262624; --border:#3a3936; --border-subtle:#2f2e2c;
+  --text:#f5f4ef; --text-2:#c9c6bd; --text-3:#94908a;
+  --green-50:#1b2a20; --green-700:#7fc79b; --red-50:#2e1d18; --red-700:#eb9880;
+  --amber-50:#2b2314; --amber-700:#e0bc78;
+  --warn-border:#4a3a1c; --good-border:#2a4d37;
+}
+@media(prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --primary:#d97757;
+    --accent-50:#282320; --accent-100:#3a2a23; --accent-200:#4d372c; --accent-700:#e79c7d;
+    --bg:#1f1e1d; --surface:#262624; --border:#3a3936; --border-subtle:#2f2e2c;
+    --text:#f5f4ef; --text-2:#c9c6bd; --text-3:#94908a;
+    --green-50:#1b2a20; --green-700:#7fc79b; --red-50:#2e1d18; --red-700:#eb9880;
+    --amber-50:#2b2314; --amber-700:#e0bc78;
+    --warn-border:#4a3a1c; --good-border:#2a4d37;
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+a{color:var(--accent-700)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:4px}
+.shell{display:grid;grid-template-columns:230px minmax(0,1fr)}
+/* ---- sidebar (repeat on every page; mark current with class="on") ---- */
+.side{position:sticky;top:0;height:100vh;overflow-y:auto;border-right:1px solid var(--border);padding:28px 18px;background:var(--surface)}
+.side .brand{font-family:var(--serif);font-size:17px;font-weight:400;letter-spacing:-.01em}
+/* collapse toggle: CSS-only, no JS — the checkbox lives just before .shell */
+.navcb{position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none}
+.sidetop{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:18px}
+.navbtn{flex:none;cursor:pointer;user-select:none;font-family:var(--sans);font-size:13px;min-width:29px;text-align:center;line-height:1;color:var(--text-3);background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:6px 8px}
+.navbtn:hover{color:var(--text);border-color:var(--accent-200)}
+.sidebtns{display:flex;gap:6px;flex:none}
+.themebtn::after{content:"\263E"}                     /* moon: click for dark */
+:root[data-theme="dark"] .themebtn::after{content:"\2600"}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .themebtn::after{content:"\2600"}}
+.navcb:focus-visible + .shell .navbtn{outline:2px solid var(--primary);outline-offset:2px}
+.navcb:checked + .shell{grid-template-columns:56px minmax(0,1fr)}
+.navcb:checked + .shell .side{padding:28px 10px}
+.navcb:checked + .shell .side .brand,.navcb:checked + .shell .side nav{display:none}
+.navcb:checked + .shell .sidetop{flex-direction:column;justify-content:center;gap:8px;margin-bottom:0}
+.navcb:checked + .shell .sidebtns{flex-direction:column}
+.side .brand span{color:var(--primary)}
+.side nav{display:flex;flex-direction:column;gap:2px}
+.side a{display:block;font-size:12.5px;font-weight:500;color:var(--text-3);text-decoration:none;padding:7px 10px;border-radius:8px;line-height:1.45}
+.side a:hover{color:var(--text);background:var(--accent-50)}
+.side a.on{color:var(--accent-700);background:var(--accent-100)}
+.side a .n{font-family:var(--mono);font-size:10px;color:var(--text-3);margin-right:6px}
+/* ---- content ---- */
+.wrap{max-width:880px;margin:0 auto;padding:48px 28px 120px;min-width:0}
+h1{font-family:var(--serif);font-weight:400;font-size:40px;letter-spacing:-.01em;line-height:1.15}
+.sub{font-family:var(--serif);font-size:19px;line-height:1.5;color:var(--text-3);margin-top:12px;max-width:60ch}
+h2{font-family:var(--serif);font-weight:400;font-size:28px;letter-spacing:-.005em;line-height:1.25;margin:64px 0 4px;scroll-margin-top:20px}
+h3{font-family:var(--serif);font-weight:400;font-size:20px;margin:28px 0 8px}
+p{margin:12px 0;color:var(--text-2);max-width:72ch}
+p b,li b{color:var(--text)}
+ul,ol{margin:12px 0 12px 22px;color:var(--text-2)}
+li{margin:7px 0;max-width:70ch}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--primary);font-weight:600;margin-top:60px}
+.eyebrow + h2{margin-top:4px}
+code{font-family:var(--mono);font-size:12.5px;background:var(--accent-100);color:var(--accent-700);padding:2px 6px;border-radius:5px}
+/* ---- chip TOC ---- */
+.toc{display:flex;gap:8px;flex-wrap:wrap;margin-top:26px}
+.toc a{font-size:12.5px;font-weight:500;color:var(--accent-700);background:var(--accent-100);border-radius:99px;padding:6px 14px;text-decoration:none}
+.toc a:hover{background:var(--accent-200)}
+/* ---- story block ---- */
+.story{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px 26px;margin:22px 0}
+.story .cast{display:flex;flex-direction:column;gap:12px}
+.story .beat{display:flex;gap:14px;align-items:flex-start}
+.story .who{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--accent-700);background:var(--accent-100);border-radius:99px;padding:4px 10px;white-space:nowrap;margin-top:2px}
+.story .what{font-size:14px;color:var(--text-2)}
+/* ---- callouts ---- */
+.callout{display:flex;gap:12px;border-radius:12px;padding:16px 18px;margin:20px 0;font-size:14px;border:1px solid}
+.callout .ic{font-size:16px;line-height:1.5}
+.callout.why{background:var(--accent-50);border-color:var(--accent-200);color:var(--text-2)}
+.callout.warn{background:var(--amber-50);border-color:var(--warn-border);color:var(--text-2)}
+.callout.good{background:var(--green-50);border-color:var(--good-border);color:var(--text-2)}
+.callout b{color:var(--text)}
+/* ---- diff block ---- */
+.diff{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:20px 0;font-family:var(--mono);font-size:12.5px;line-height:1.75}
+.diff .dh{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border-subtle);font-family:var(--sans);font-size:12.5px;font-weight:600}
+.diff .dh .f{font-family:var(--mono);font-weight:400;font-size:11px;color:var(--text-3)}
+.diff pre{overflow-x:auto;padding:14px 0;white-space:pre}
+.diff .ln{display:block;padding:0 18px}
+.diff .del{background:var(--red-50);color:var(--red-700)}
+.diff .add{background:var(--green-50);color:var(--green-700)}
+.diff .ctx{color:var(--text-3)}
+.diff .cm{color:#8d897e}
+/* ---- scoreboard ---- */
+.tblwrap{overflow-x:auto}
+.status{width:100%;border-collapse:collapse;margin:20px 0;font-size:13.5px;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.status th{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;text-align:left;color:var(--text-3);padding:12px 16px;border-bottom:1px solid var(--border)}
+.status td{padding:12px 16px;border-bottom:1px solid var(--border-subtle);color:var(--text-2);vertical-align:top}
+.status tr:last-child td{border-bottom:none}
+.pill{font-family:var(--mono);font-size:10.5px;font-weight:600;border-radius:99px;padding:3px 10px;white-space:nowrap}
+.pill.done{background:var(--green-50);color:var(--green-700)}
+.pill.idea{background:var(--amber-50);color:var(--amber-700)}
+/* ---- responsive: sidebar becomes a top strip ---- */
+@media(max-width:800px){
+  .shell,.navcb:checked + .shell{grid-template-columns:1fr}
+  .navcb:checked + .shell .side{padding:14px 16px}
+  .side{position:static;height:auto;border-right:none;border-bottom:1px solid var(--border);padding:14px 16px}
+  .side nav{flex-direction:row;overflow-x:auto;gap:6px;padding-bottom:4px}
+  .side a{white-space:nowrap}
+  .story .beat{flex-direction:column;gap:4px}
+}
+</style>
+<script>
+/* theme toggle — the only JS in the page: remembers the reader's choice and
+   otherwise follows the OS. Runs in <head> so there is no flash of light. */
+(function(){
+  var r=document.documentElement,K="explainer-theme",s=null;
+  try{s=localStorage.getItem(K)}catch(e){}
+  if(s)r.setAttribute("data-theme",s);
+  document.addEventListener("click",function(e){
+    if(!e.target.closest(".themebtn"))return;
+    var cur=r.getAttribute("data-theme")||(matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light"),
+        next=cur==="dark"?"light":"dark";
+    r.setAttribute("data-theme",next);
+    try{localStorage.setItem(K,next)}catch(e){}
+  });
+})();
+</script>
+</head>
+<body>
+<input type="checkbox" id="nav" class="navcb" aria-label="Collapse sidebar" />
+<div class="shell">
+
+<aside class="side">
+  <div class="sidetop">
+  <div class="brand">EXPLAIN<span>-IT</span></div>
+    <div class="sidebtns">
+      <button type="button" class="navbtn themebtn" title="Switch light / dark" aria-label="Switch light or dark theme"></button>
+      <label for="nav" class="navbtn" title="Show/hide navigation">&#9776;</label>
+    </div>
+  </div>
+  <nav>
+    <a href="index.html">What explain-it makes</a>
+    <a href="01-pinned-release.html"><span class="n">01</span>The job that read tomorrow's settings</a>
+    <a href="02-whole-blob.html" class="on"><span class="n">02</span>Loading the whole photocopy per request</a>
+  </nav>
+</aside>
+
+<main class="wrap">
+
+<h1>Stop loading the whole photocopy<br/>on every dashboard poll</h1>
+<p class="sub">Reading from the pinned release is correct. Reading <i>all</i> of it, five times a minute, to answer a question that is almost always "nothing changed", is not.</p>
+
+<div class="toc">
+  <a href="#when">When does this run?</a>
+  <a href="#wrong">What's wrong</a>
+  <a href="#fix">The fix</a>
+</div>
+
+<div class="eyebrow" id="when">API · dashboard polling</div>
+<h2>When does this code even run?</h2>
+<div class="story"><div class="cast">
+  <div class="beat"><span class="who">Owner</span><span class="what">leaves the Lantern dashboard open on a second monitor — the normal way the product gets used.</span></div>
+  <div class="beat"><span class="who">Browser</span><span class="what">polls <code>/api/jobs/live</code> every five seconds so the run list stays fresh.</span></div>
+  <div class="beat"><span class="who">Server</span><span class="what">runs <code>handleRequest</code>, and for each running job loads that job's photocopy to render which steps it is made of.</span></div>
+</div></div>
+
+<div class="eyebrow" id="wrong">Problem</div>
+<h2>What's wrong</h2>
+<p>A photocopy is one row, but a fat one: <code>releases.configBlob</code> holds the full settings bundle — every step, every template, every credential reference — and averages 180&nbsp;KB, with the largest tenant at 2.1&nbsp;MB. The dashboard needs roughly forty bytes of it: the release version, to decide whether the run list it already has is still accurate.</p>
+
+<div class="callout warn"><span class="ic">⚠</span><div><b>Cost, concretely:</b> one open dashboard with 12 running jobs pulls ~2.2&nbsp;MB out of the database every five seconds — 1.5&nbsp;GB an hour, per open tab. Roughly 99% of those reads answer "same version as last time, nothing to redraw". During business hours this single endpoint accounted for 61% of read traffic on the primary.</div></div>
+
+<div class="eyebrow" id="fix">Fix</div>
+<h2>The fix</h2>
+<p>Ask the cheap question first. The version number lives on the job row that is already in memory, so the expensive read only happens when the answer can actually differ from what the browser has:</p>
+
+<div class="diff">
+  <div class="dh">Version check before blob read <span class="f">api/src/dashboard.ts (~line 140)</span></div>
+  <pre><span class="ln ctx">  async function liveJobs(req) {</span><span class="ln ctx">    const jobs = await db.jobs.running(req.tenantId)</span><span class="ln del">-   const shapes = await Promise.all(</span><span class="ln del">-     jobs.map(j =&gt; loadRelease(j.pinnedRelease))     <span class="cm">// ~180 KB each, every 5 seconds</span></span><span class="ln del">-   )</span><span class="ln add">+   const seen = req.query.seenVersions ?? {}          <span class="cm">// what the browser already holds</span></span><span class="ln add">+   const stale = jobs.filter(j =&gt; seen[j.id] !== j.pinnedRelease)</span><span class="ln add">+   const shapes = await Promise.all(                   <span class="cm">// free in-memory check, no DB read</span></span><span class="ln add">+     stale.map(j =&gt; loadRelease(j.pinnedRelease))</span><span class="ln add">+   )</span><span class="ln ctx">    return render(jobs, shapes)</span><span class="ln ctx">  }</span></pre>
+</div>
+
+<p>The browser sends back the versions it already has; the server only re-sends shapes that changed. Steady-state polling now reads zero blobs, and a release causes exactly one blob read per affected job.</p>
+
+<div class="callout good"><span class="ic">✓</span><div><b>Why it's safe:</b> the pin is immutable for a job's lifetime and a photocopy is immutable once taken, so "same version" genuinely implies "same bytes" — the check cannot go stale in the way a cache can. A browser that sends no <code>seenVersions</code> (first load, hard refresh, old client) gets the previous full-fetch behaviour.</div></div>
+
+<div class="callout why"><span class="ic">🤔</span><div><b>Decision, not a bug:</b> owners regularly ask why edits don't show up in a job they are watching. That is the pinned-photocopy invariant working exactly as designed, not a staleness bug — but it is also a real confusion, and the honest fix is a product one: label the run list with the version each job is pinned to, so "why isn't my edit here" answers itself. That is a call for whoever owns the dashboard, not a fix to make quietly in the API.</div></div>
+
+<p>Back to <a href="index.html">the overview and scoreboard</a>.</p>
+
+</main>
+</div>
+</body>
+</html>

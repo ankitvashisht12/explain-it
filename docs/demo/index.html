@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>What explain-it makes · explain-it</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+:root{
+  color-scheme:light;
+  --primary:#c2603d;
+  --accent-50:#f8f3ef; --accent-100:#f3e8e1; --accent-200:#e9d6ca; --accent-700:#9c4a2c;
+  --bg:#faf9f5; --surface:#ffffff; --border:#e6e2d8; --border-subtle:#f0ece2;
+  --text:#1f1e1c; --text-2:#46443f; --text-3:#75726a;
+  --green-50:#eaf4ec; --green-700:#2f6b45; --red-50:#fbeeea; --red-700:#a8412a;
+  --amber-50:#fbf1de; --amber-700:#8a6220;
+  --sans:"Plus Jakarta Sans",-apple-system,BlinkMacSystemFont,sans-serif;
+  --serif:"Instrument Serif",Georgia,"Times New Roman",serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  --warn-border:#e8d4a8; --good-border:#c3ddcb;
+}
+/* dark values: applied on [data-theme="dark"], or by OS preference unless the
+   reader has explicitly chosen light. The toggle sets data-theme on <html>. */
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --primary:#d97757;
+  --accent-50:#282320; --accent-100:#3a2a23; --accent-200:#4d372c; --accent-700:#e79c7d;
+  --bg:#1f1e1d; --surface:#262624; --border:#3a3936; --border-subtle:#2f2e2c;
+  --text:#f5f4ef; --text-2:#c9c6bd; --text-3:#94908a;
+  --green-50:#1b2a20; --green-700:#7fc79b; --red-50:#2e1d18; --red-700:#eb9880;
+  --amber-50:#2b2314; --amber-700:#e0bc78;
+  --warn-border:#4a3a1c; --good-border:#2a4d37;
+}
+@media(prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --primary:#d97757;
+    --accent-50:#282320; --accent-100:#3a2a23; --accent-200:#4d372c; --accent-700:#e79c7d;
+    --bg:#1f1e1d; --surface:#262624; --border:#3a3936; --border-subtle:#2f2e2c;
+    --text:#f5f4ef; --text-2:#c9c6bd; --text-3:#94908a;
+    --green-50:#1b2a20; --green-700:#7fc79b; --red-50:#2e1d18; --red-700:#eb9880;
+    --amber-50:#2b2314; --amber-700:#e0bc78;
+    --warn-border:#4a3a1c; --good-border:#2a4d37;
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+a{color:var(--accent-700)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:4px}
+.shell{display:grid;grid-template-columns:230px minmax(0,1fr)}
+/* ---- sidebar (repeat on every page; mark current with class="on") ---- */
+.side{position:sticky;top:0;height:100vh;overflow-y:auto;border-right:1px solid var(--border);padding:28px 18px;background:var(--surface)}
+.side .brand{font-family:var(--serif);font-size:17px;font-weight:400;letter-spacing:-.01em}
+/* collapse toggle: CSS-only, no JS — the checkbox lives just before .shell */
+.navcb{position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none}
+.sidetop{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:18px}
+.navbtn{flex:none;cursor:pointer;user-select:none;font-family:var(--sans);font-size:13px;min-width:29px;text-align:center;line-height:1;color:var(--text-3);background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:6px 8px}
+.navbtn:hover{color:var(--text);border-color:var(--accent-200)}
+.sidebtns{display:flex;gap:6px;flex:none}
+.themebtn::after{content:"\263E"}                     /* moon: click for dark */
+:root[data-theme="dark"] .themebtn::after{content:"\2600"}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .themebtn::after{content:"\2600"}}
+.navcb:focus-visible + .shell .navbtn{outline:2px solid var(--primary);outline-offset:2px}
+.navcb:checked + .shell{grid-template-columns:56px minmax(0,1fr)}
+.navcb:checked + .shell .side{padding:28px 10px}
+.navcb:checked + .shell .side .brand,.navcb:checked + .shell .side nav{display:none}
+.navcb:checked + .shell .sidetop{flex-direction:column;justify-content:center;gap:8px;margin-bottom:0}
+.navcb:checked + .shell .sidebtns{flex-direction:column}
+.side .brand span{color:var(--primary)}
+.side nav{display:flex;flex-direction:column;gap:2px}
+.side a{display:block;font-size:12.5px;font-weight:500;color:var(--text-3);text-decoration:none;padding:7px 10px;border-radius:8px;line-height:1.45}
+.side a:hover{color:var(--text);background:var(--accent-50)}
+.side a.on{color:var(--accent-700);background:var(--accent-100)}
+.side a .n{font-family:var(--mono);font-size:10px;color:var(--text-3);margin-right:6px}
+/* ---- content ---- */
+.wrap{max-width:880px;margin:0 auto;padding:48px 28px 120px;min-width:0}
+h1{font-family:var(--serif);font-weight:400;font-size:40px;letter-spacing:-.01em;line-height:1.15}
+.sub{font-family:var(--serif);font-size:19px;line-height:1.5;color:var(--text-3);margin-top:12px;max-width:60ch}
+h2{font-family:var(--serif);font-weight:400;font-size:28px;letter-spacing:-.005em;line-height:1.25;margin:64px 0 4px;scroll-margin-top:20px}
+h3{font-family:var(--serif);font-weight:400;font-size:20px;margin:28px 0 8px}
+p{margin:12px 0;color:var(--text-2);max-width:72ch}
+p b,li b{color:var(--text)}
+ul,ol{margin:12px 0 12px 22px;color:var(--text-2)}
+li{margin:7px 0;max-width:70ch}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--primary);font-weight:600;margin-top:60px}
+.eyebrow + h2{margin-top:4px}
+code{font-family:var(--mono);font-size:12.5px;background:var(--accent-100);color:var(--accent-700);padding:2px 6px;border-radius:5px}
+/* ---- chip TOC ---- */
+.toc{display:flex;gap:8px;flex-wrap:wrap;margin-top:26px}
+.toc a{font-size:12.5px;font-weight:500;color:var(--accent-700);background:var(--accent-100);border-radius:99px;padding:6px 14px;text-decoration:none}
+.toc a:hover{background:var(--accent-200)}
+/* ---- story block ---- */
+.story{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px 26px;margin:22px 0}
+.story .cast{display:flex;flex-direction:column;gap:12px}
+.story .beat{display:flex;gap:14px;align-items:flex-start}
+.story .who{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--accent-700);background:var(--accent-100);border-radius:99px;padding:4px 10px;white-space:nowrap;margin-top:2px}
+.story .what{font-size:14px;color:var(--text-2)}
+/* ---- callouts ---- */
+.callout{display:flex;gap:12px;border-radius:12px;padding:16px 18px;margin:20px 0;font-size:14px;border:1px solid}
+.callout .ic{font-size:16px;line-height:1.5}
+.callout.why{background:var(--accent-50);border-color:var(--accent-200);color:var(--text-2)}
+.callout.warn{background:var(--amber-50);border-color:var(--warn-border);color:var(--text-2)}
+.callout.good{background:var(--green-50);border-color:var(--good-border);color:var(--text-2)}
+.callout b{color:var(--text)}
+/* ---- diff block ---- */
+.diff{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:20px 0;font-family:var(--mono);font-size:12.5px;line-height:1.75}
+.diff .dh{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border-subtle);font-family:var(--sans);font-size:12.5px;font-weight:600}
+.diff .dh .f{font-family:var(--mono);font-weight:400;font-size:11px;color:var(--text-3)}
+.diff pre{overflow-x:auto;padding:14px 0;white-space:pre}
+.diff .ln{display:block;padding:0 18px}
+.diff .del{background:var(--red-50);color:var(--red-700)}
+.diff .add{background:var(--green-50);color:var(--green-700)}
+.diff .ctx{color:var(--text-3)}
+.diff .cm{color:#8d897e}
+/* ---- scoreboard ---- */
+.tblwrap{overflow-x:auto}
+.status{width:100%;border-collapse:collapse;margin:20px 0;font-size:13.5px;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.status th{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;text-align:left;color:var(--text-3);padding:12px 16px;border-bottom:1px solid var(--border)}
+.status td{padding:12px 16px;border-bottom:1px solid var(--border-subtle);color:var(--text-2);vertical-align:top}
+.status tr:last-child td{border-bottom:none}
+.pill{font-family:var(--mono);font-size:10.5px;font-weight:600;border-radius:99px;padding:3px 10px;white-space:nowrap}
+.pill.done{background:var(--green-50);color:var(--green-700)}
+.pill.idea{background:var(--amber-50);color:var(--amber-700)}
+/* ---- responsive: sidebar becomes a top strip ---- */
+@media(max-width:800px){
+  .shell,.navcb:checked + .shell{grid-template-columns:1fr}
+  .navcb:checked + .shell .side{padding:14px 16px}
+  .side{position:static;height:auto;border-right:none;border-bottom:1px solid var(--border);padding:14px 16px}
+  .side nav{flex-direction:row;overflow-x:auto;gap:6px;padding-bottom:4px}
+  .side a{white-space:nowrap}
+  .story .beat{flex-direction:column;gap:4px}
+}
+</style>
+<script>
+/* theme toggle — the only JS in the page: remembers the reader's choice and
+   otherwise follows the OS. Runs in <head> so there is no flash of light. */
+(function(){
+  var r=document.documentElement,K="explainer-theme",s=null;
+  try{s=localStorage.getItem(K)}catch(e){}
+  if(s)r.setAttribute("data-theme",s);
+  document.addEventListener("click",function(e){
+    if(!e.target.closest(".themebtn"))return;
+    var cur=r.getAttribute("data-theme")||(matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light"),
+        next=cur==="dark"?"light":"dark";
+    r.setAttribute("data-theme",next);
+    try{localStorage.setItem(K,next)}catch(e){}
+  });
+})();
+</script>
+</head>
+<body>
+<input type="checkbox" id="nav" class="navcb" aria-label="Collapse sidebar" />
+<div class="shell">
+
+<aside class="side">
+  <div class="sidetop">
+  <div class="brand">EXPLAIN<span>-IT</span></div>
+    <div class="sidebtns">
+      <button type="button" class="navbtn themebtn" title="Switch light / dark" aria-label="Switch light or dark theme"></button>
+      <label for="nav" class="navbtn" title="Show/hide navigation">&#9776;</label>
+    </div>
+  </div>
+  <nav>
+    <a href="index.html" class="on">What explain-it makes</a>
+    <a href="01-pinned-release.html"><span class="n">01</span>The job that read tomorrow's settings</a>
+    <a href="02-whole-blob.html"><span class="n">02</span>Loading the whole photocopy per request</a>
+  </nav>
+</aside>
+
+<main class="wrap">
+
+<h1>Explainers a reader can follow<br/>without knowing your codebase</h1>
+<p class="sub">explain-it is an agent skill. Point it at a change, a bug, or a subsystem and it produces a small static site: a primer that builds the mental model, one page per topic, a shared sidebar, no build step. This site is one of its outputs — the demo starts on <a href="01-pinned-release.html">page 01</a>.</p>
+
+<div class="toc">
+  <a href="#what">What it produces</a>
+  <a href="#how">How it writes</a>
+  <a href="#demo">The worked example</a>
+  <a href="#status">Scoreboard</a>
+</div>
+
+<div class="eyebrow" id="what">Overview</div>
+<h2>What it produces</h2>
+<p>A folder of plain HTML files. Every page is self-contained — all CSS inline, no router, no bundler, no network calls beyond one web-font link — so the site opens straight from disk, survives being zipped into an email, and still works in five years.</p>
+<ul>
+  <li><b>A root primer</b> that gives the reader the minimum mental model in about two minutes, then links to every topic page.</li>
+  <li><b>One page per topic</b> — a change, a bug, a decision, a subsystem. Three to seven is the sweet spot; beyond nine, topics get merged rather than added.</li>
+  <li><b>A shared sidebar</b>, repeated in every page with the current entry marked, collapsible to a rail when it is in the way.</li>
+  <li><b>A scoreboard</b> closing the primer: every item on the site with its status and its location in the codebase.</li>
+</ul>
+
+<div class="callout why"><span class="ic">💡</span><div><b>Who it is aimed at:</b> the reader is a capable engineer who has never seen <i>this</i> repository. They can follow any concept that gets explained and zero concepts that don't. Everything below follows from calibrating to exactly that person — never talking down, never assuming repo knowledge.</div></div>
+
+<div class="eyebrow" id="how">Method</div>
+<h2>How it writes</h2>
+<h3>Read the code first, always</h3>
+<p>Nothing gets explained from memory of a conversation. For each topic the skill reads the changed lines, the enclosing function, and at least one caller — enough to answer <b>"when does this code even run?"</b> with a true story rather than a plausible one. A claim that came from a review comment gets verified against the source before it is repeated.</p>
+
+<h3>Ground every page in a runtime moment</h3>
+<p>Abstract code turns concrete the second a reader can picture the moment it fires. Every topic page opens with two to four actor beats — who does what, ending in the one small job the page is about. Real function names ride <i>alongside</i> the plain-language story, never instead of it.</p>
+
+<h3>One metaphor per concept, reused verbatim</h3>
+<p>A metaphor is introduced once, in the primer, in bold — then used with the same word everywhere after. "Photocopy" never quietly becomes "snapshot" two pages later. Metaphors also have to be mechanically faithful: they must not break under the exact behaviour being explained.</p>
+
+<h3>Show the change, quantify the reason</h3>
+<p>Changes appear as trimmed red/green diffs of real code with the file path in the header and inline comments pointing at <i>why</i>, not narrating <i>what</i>. Vague quantifiers are banned outright — "slow" gets replaced by the number, the size, or the concrete triggering input. And a defensible product choice is presented as a decision with its trade-off, never dressed up as a defect.</p>
+
+<div class="eyebrow" id="demo">Demo · primer</div>
+<h2>The worked example: Lantern</h2>
+<p>The two topic pages explain a change in <b>Lantern</b>, a scheduled-job runner. Lantern is invented for this demo — there is no such repository, and every identifier below is fictional. What is real is the shape: this is what the skill's own primer section looks like when it is doing its job.</p>
+
+<p>Lantern runs recurring jobs — nightly imports, invoice runs, digest emails. What a job actually does is defined by a bundle of settings its owner edits in a web dashboard (internally, a <code>config</code>).</p>
+
+<p>Settings are edited constantly, but jobs must not change shape halfway through a run. So Lantern separates editing from running: pressing <b>Release</b> takes a <b>photocopy</b> of the settings exactly as they are, stored as a new row in <code>releases</code> with the frozen bundle in <code>releases.configBlob</code>. Editing afterwards changes the live settings and never touches the photocopy.</p>
+
+<p>Every job that starts gets a sticky note — a <b>pin</b> — recording which photocopy it belongs to: <code>job.pinnedRelease = 13</code>. From then on the pin is the job's whole world.</p>
+
+<div class="story"><div class="cast">
+  <div class="beat"><span class="who">Owner</span><span class="what">edits the settings freely, all day. Nothing running is affected.</span></div>
+  <div class="beat"><span class="who">Owner</span><span class="what">presses <b>Release</b> — a photocopy is taken and becomes version 13.</span></div>
+  <div class="beat"><span class="who">Runner</span><span class="what">starts a job at 02:00, pins it to version 13, and works through its steps for the next twenty minutes.</span></div>
+</div></div>
+
+<p>Which gives the rule both topic pages revolve around:</p>
+<div class="callout good"><span class="ic">✓</span><div><b>The invariant:</b> a running job must only ever read its pinned photocopy — never the live settings, never a newer release.</div></div>
+
+<p>Page <a href="01-pinned-release.html">01</a> is what happens when one code path forgets that rule. Page <a href="02-whole-blob.html">02</a> is about the cost of obeying it naively.</p>
+
+<div class="eyebrow" id="status">Scoreboard</div>
+<h2>What's applied vs. what's still an idea</h2>
+<p>Every site ends here: one row per item, honest statuses, and where to look in the code. A stale status destroys trust in the whole site, so this table is the last thing updated before handing it over.</p>
+<div class="tblwrap"><table class="status">
+  <tr><th>Item</th><th>Status</th><th>Where</th></tr>
+  <tr><td>Mid-run steps read the live config instead of the pinned photocopy</td><td><span class="pill done">fixed</span></td><td><code>runner/src/steps.ts</code></td></tr>
+  <tr><td><code>loadRelease</code> made the single entry point for reading a photocopy</td><td><span class="pill done">merged</span></td><td><code>runner/src/config.ts</code></td></tr>
+  <tr><td>Dashboard polling fetches the whole blob every 5s → version check first</td><td><span class="pill done">merged</span></td><td><code>api/src/dashboard.ts</code></td></tr>
+  <tr><td>Warn owners when a release is pending and jobs are mid-flight</td><td><span class="pill idea">proposed</span></td><td><code>web/src/ReleaseBar.tsx</code></td></tr>
+  <tr><td>Let long jobs opt into adopting a newer release at a step boundary</td><td><span class="pill idea">parked — needs a call</span></td><td>—</td></tr>
+</table></div>
+
+</main>
+</div>
+</body>
+</html>
